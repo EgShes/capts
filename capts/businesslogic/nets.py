@@ -29,7 +29,7 @@ class FNSCaptchasNet(nn.Module):
     def __init__(self, vocab_path, weights_path=None):
         super().__init__()
         self.vocab = pickle.load(open(vocab_path, 'rb'))
-        self.weights = torch.load(weights_path) if weights_path else None
+        self.weights = torch.load(weights_path, map_location='cpu') if weights_path else None
 
         self.model = self.make_model(n_classes=len(self.vocab) + 1)
         if self.weights:
@@ -56,7 +56,7 @@ class DeclarationCaptchasNet(nn.Module):
     def __init__(self, vocab_path, weights_path=None):
         super().__init__()
         self.vocab = pickle.load(open(vocab_path, 'rb'))
-        self.weights = torch.load(weights_path) if weights_path else None
+        self.weights = torch.load(weights_path, map_location='cpu') if weights_path else None
 
         self.model = self.make_model(n_classes=len(self.vocab) + 1)
         if self.weights:
