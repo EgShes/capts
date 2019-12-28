@@ -36,11 +36,17 @@ class FNSCaptchasNet(nn.Module):
             load_weights(self.model, self.weights)
 
     def make_model(self, n_classes):
-        model = fasterrcnn_resnet50_fpn(pretrained=False)
+        backbone = torchvision.models.mobilenet_v2(pretrained=False).features
+        backbone.out_channels = 1280
 
-        in_features = model.roi_heads.box_predictor.cls_score.in_features
-        model.roi_heads.box_predictor = faster_rcnn.FastRCNNPredictor(in_features, n_classes)
+        anchor_generator = faster_rcnn.AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
+                                                       aspect_ratios=((0.5, 1.0, 2.0),))
 
+        roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0], output_size=7, sampling_ratio=2)
+
+        model = faster_rcnn.FasterRCNN(backbone, num_classes=n_classes,
+                                       rpn_anchor_generator=anchor_generator,
+                                       box_roi_pool=roi_pooler)
         return model
 
     def forward(self, inputs):
