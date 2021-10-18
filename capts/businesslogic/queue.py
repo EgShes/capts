@@ -12,17 +12,15 @@ from capts.config import RABBIT_URL
 
 
 class Config:
-    EXCHANGE = os.environ.get('EXCHANGE', 'exchange')
-    EXCHANGE_DEAD_LETTER = os.environ.get('EXCHANGE_DEAD_LETTER', 'exchange-dead-letter')
-    FNS_QUEUE = os.environ.get('FNS_QUEUE', 'fns-queue')
-    ALCO_QUEUE = os.environ.get('ALCO_QUEUE', 'alco-queue')
-    FNS_QUEUE_ROUTING_KEY = 'fns'
-    ALCO_QUEUE_ROUTING_KEY = 'alco'
+    EXCHANGE = os.environ.get("EXCHANGE", "exchange")
+    EXCHANGE_DEAD_LETTER = os.environ.get("EXCHANGE_DEAD_LETTER", "exchange-dead-letter")
+    FNS_QUEUE = os.environ.get("FNS_QUEUE", "fns-queue")
+    ALCO_QUEUE = os.environ.get("ALCO_QUEUE", "alco-queue")
+    FNS_QUEUE_ROUTING_KEY = "fns"
+    ALCO_QUEUE_ROUTING_KEY = "alco"
 
 
-def send_object(
-    channel: BlockingChannel, app_model: BaseModel, exchange: str, routing_key: str
-):
+def send_object(channel: BlockingChannel, app_model: BaseModel, exchange: str, routing_key: str):
     channel.basic_publish(
         exchange=exchange,
         routing_key=routing_key,
@@ -32,14 +30,18 @@ def send_object(
 
 
 class MessagePublisher:
-
     def __init__(self, channel: BlockingChannel, exchange: str, routing_key: str):
         self._channel = channel
         self._exchange = exchange
         self._routing_key = routing_key
 
     def publish_message(self, object_: BaseModel):
-        send_object(channel=self._channel, app_model=object_, exchange=self._exchange, routing_key=self._routing_key)
+        send_object(
+            channel=self._channel,
+            app_model=object_,
+            exchange=self._exchange,
+            routing_key=self._routing_key,
+        )
 
 
 def init_exchange(channel: BlockingChannel, exchange: str, type_: str):
@@ -50,7 +52,13 @@ def init_exchange(channel: BlockingChannel, exchange: str, type_: str):
     )
 
 
-def init_queue(channel: BlockingChannel, exchange: str, exchange_dead_letter: str, queue: str, routing_key: str):
+def init_queue(
+    channel: BlockingChannel,
+    exchange: str,
+    exchange_dead_letter: str,
+    queue: str,
+    routing_key: str,
+):
     arguments = {
         "x-dead-letter-exchange": "dead-letter",
         "x-dead-letter-routing-key": queue,
@@ -89,13 +97,14 @@ def init_channel(
     alco_routing_key: str,
 ):
     channel = connection.channel()
-    init_exchange(channel, exchange, 'direct')
-    init_exchange(channel, exchange_dead_letter, 'direct')
+    init_exchange(channel, exchange, "direct")
+    init_exchange(channel, exchange_dead_letter, "direct")
 
     init_queue(channel, exchange, exchange_dead_letter, fns_queue, fns_routing_key)
     init_queue(channel, exchange, exchange_dead_letter, alco_queue, alco_routing_key)
 
     return channel
+
 
 MAX_ATTEMPTS = 10
 for attempt in count():
@@ -105,7 +114,7 @@ for attempt in count():
     except AMQPConnectionError:
         sleep(1)
     if attempt == MAX_ATTEMPTS:
-        raise AMQPConnectionError(f'Could not connect to {RABBIT_URL}')
+        raise AMQPConnectionError(f"Could not connect to {RABBIT_URL}")
 
 channel = init_channel(
     connection=connection,

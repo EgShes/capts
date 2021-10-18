@@ -14,19 +14,23 @@ class TaskStatus(Enum):
 
 
 class Task:
-
-    def __init__(self, id: Optional[Union[uuid.UUID, str]] = None, status: TaskStatus = TaskStatus.received, result: str = ''):
+    def __init__(
+        self,
+        id: Optional[Union[uuid.UUID, str]] = None,
+        status: TaskStatus = TaskStatus.received,
+        result: str = "",
+    ):
         self.id = str(uuid4()) if id is None else str(id)
         self.status = status
         self.result = result
 
     def to_json(self) -> str:
-        return json.dumps({'id': self.id, 'status': self.status.value, 'result': self.result})
+        return json.dumps({"id": self.id, "status": self.status.value, "result": self.result})
 
     @classmethod
     def from_json(cls, json_string: str):
         data = json.loads(json_string)
-        data['status'] = TaskStatus(data['status'])
+        data["status"] = TaskStatus(data["status"])
         return cls(**data)
 
 
@@ -39,7 +43,6 @@ class RedisNotInitializedError(Exception):
 
 
 class TaskTracker:
-
     def __init__(self, redis: Redis):
         self._redis = redis
 
@@ -48,7 +51,7 @@ class TaskTracker:
         try:
             redis = Redis.from_url(url)
         except ValueError as e:
-            raise RedisNotInitializedError(f'Could not initialize redis from url: {url}') from e
+            raise RedisNotInitializedError(f"Could not initialize redis from url: {url}") from e
         return cls(redis)
 
     def register_task(self, task: Task):
@@ -65,7 +68,7 @@ class TaskTracker:
 
     def get_task(self, id_: str) -> Task:
         if not self._redis.exists(id_):
-            raise TaskNotRegisteredError(f'Missing task with id {id_}')
+            raise TaskNotRegisteredError(f"Missing task with id {id_}")
         return Task.from_json(self._redis.get(id_))
 
     def _push_task(self, task: Task):

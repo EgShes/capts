@@ -1,23 +1,24 @@
+import pickle
+
 import torch
 import torch.nn as nn
 import torchvision
-from torchvision.models.detection import faster_rcnn, fasterrcnn_resnet50_fpn
-import pickle
+from torchvision.models.detection import faster_rcnn
 
 
 def load_weights(model, weights):
     try:
-        state_dict = weights['model_state_dict']
+        state_dict = weights["model_state_dict"]
         missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
         if len(missing_keys) != 0 or len(unexpected_keys) != 0:
             raise ValueError()
 
     except FileNotFoundError:
-        print('Invalid model weights file! Model is initialized randomly')
+        print("Invalid model weights file! Model is initialized randomly")
     except ValueError:
-        print('Weights dont match with model! Model is initialized randomly')
+        print("Weights dont match with model! Model is initialized randomly")
     except KeyError:
-        print('Invalid model weights! Key model_state_dict is absent')
+        print("Invalid model weights! Key model_state_dict is absent")
 
     return None
 
@@ -26,10 +27,11 @@ class FNSCaptchasNet(nn.Module):
     """
     class for net for solving captchas from https://service.nalog.ru/ (Федеральная налоговая служба)
     """
+
     def __init__(self, vocab_path, weights_path=None):
         super().__init__()
-        self.vocab = pickle.load(open(vocab_path, 'rb'))
-        self.weights = torch.load(weights_path, map_location='cpu') if weights_path else None
+        self.vocab = pickle.load(open(vocab_path, "rb"))
+        self.weights = torch.load(weights_path, map_location="cpu") if weights_path else None
 
         self.model = self.make_model(n_classes=len(self.vocab) + 1)
         if self.weights:
@@ -39,14 +41,18 @@ class FNSCaptchasNet(nn.Module):
         backbone = torchvision.models.mobilenet_v2(pretrained=False).features
         backbone.out_channels = 1280
 
-        anchor_generator = faster_rcnn.AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
-                                                       aspect_ratios=((0.5, 1.0, 2.0),))
+        anchor_generator = faster_rcnn.AnchorGenerator(
+            sizes=((32, 64, 128, 256, 512),), aspect_ratios=((0.5, 1.0, 2.0),)
+        )
 
         roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0], output_size=7, sampling_ratio=2)
 
-        model = faster_rcnn.FasterRCNN(backbone, num_classes=n_classes,
-                                       rpn_anchor_generator=anchor_generator,
-                                       box_roi_pool=roi_pooler)
+        model = faster_rcnn.FasterRCNN(
+            backbone,
+            num_classes=n_classes,
+            rpn_anchor_generator=anchor_generator,
+            box_roi_pool=roi_pooler,
+        )
         return model
 
     def forward(self, inputs):
@@ -61,8 +67,8 @@ class DeclarationCaptchasNet(nn.Module):
 
     def __init__(self, vocab_path, weights_path=None):
         super().__init__()
-        self.vocab = pickle.load(open(vocab_path, 'rb'))
-        self.weights = torch.load(weights_path, map_location='cpu') if weights_path else None
+        self.vocab = pickle.load(open(vocab_path, "rb"))
+        self.weights = torch.load(weights_path, map_location="cpu") if weights_path else None
 
         self.model = self.make_model(n_classes=len(self.vocab) + 1)
         if self.weights:
@@ -72,14 +78,18 @@ class DeclarationCaptchasNet(nn.Module):
         backbone = torchvision.models.mobilenet_v2(pretrained=False).features
         backbone.out_channels = 1280
 
-        anchor_generator = faster_rcnn.AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
-                                                       aspect_ratios=((0.5, 1.0, 2.0),))
+        anchor_generator = faster_rcnn.AnchorGenerator(
+            sizes=((32, 64, 128, 256, 512),), aspect_ratios=((0.5, 1.0, 2.0),)
+        )
 
         roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=[0], output_size=7, sampling_ratio=2)
 
-        model = faster_rcnn.FasterRCNN(backbone, num_classes=n_classes,
-                                       rpn_anchor_generator=anchor_generator,
-                                       box_roi_pool=roi_pooler)
+        model = faster_rcnn.FasterRCNN(
+            backbone,
+            num_classes=n_classes,
+            rpn_anchor_generator=anchor_generator,
+            box_roi_pool=roi_pooler,
+        )
         return model
 
     def forward(self, inputs):
