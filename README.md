@@ -1,9 +1,11 @@
 # capts
 
-### How to run on linux
-Go to /capts directory (root folder, not in capts/capts)
+## Deployment
+
+### Prod
+
 ```
-source path2env/bin/activate
-pip3 install -r requirements.txt
-python run_server.py
+cd docker-compose
+cp envs/prod .env
+DOCKER_BUILDKIT=1 docker-compose up
 ```
