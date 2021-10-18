@@ -3,9 +3,14 @@ version: "2.4"
 services:
   redis:
     image: "redis:alpine"
+    ports:
+      - 9999:6379
 
   queue:
     image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
     restart: on-failure
 
   api:

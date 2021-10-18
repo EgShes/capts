@@ -1,21 +1,15 @@
-from enum import Enum
-from uuid import uuid4
-
 from fastapi import FastAPI
 
-from capts.businesslogic.task import Task, TaskNotRegisteredError, TaskStatus
+from capts.app.models import Message
+from capts.app.utils import CaptchaType, status2message
+from capts.businesslogic.queue import alco_message_publisher, channel, fns_message_publisher, send_object
+from capts.businesslogic.task import Task, TaskNotRegisteredError
 from capts.config import task_tracker
 
 
-class CaptchaType(str, Enum):
-    fns = "fns"
-    alcolicenziat = "alcolicenziat"
-
-
-status2message = {
-    TaskStatus.received: 'Waiting for processing',
-    TaskStatus.processing: 'In processing',
-    TaskStatus.finished: 'Processed'
+captcha2publisher = {
+    CaptchaType.fns: fns_message_publisher,
+    CaptchaType.alcolicenziat: alco_message_publisher
 }
 
 
@@ -26,6 +20,7 @@ app = FastAPI()
 def process_image(captcha_type: CaptchaType):
     task = Task()
     task_tracker.register_task(task)
+    captcha2publisher[captcha_type].publish_message(Message(id=task.id, storage_namespace=captcha_type.name))
     return {"id": task.id}
 
 
