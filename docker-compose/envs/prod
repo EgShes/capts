@@ -1,0 +1,14 @@
+COMPOSE_PROJECT_NAME=captcha
+
+REDIS_URL=<secret>
+RABBIT_URL=<secret>
+RABBIT_PORT=<secret>
+RABBIT_LOGIN=<secret>
+RABBIT_PASSWORD=<secret>
+
+EXCHANGE=<secret>
+EXCHANGE_DEAD_LETTER=<secret>
+FNS_QUEUE=<secret>
+ALCO_QUEUE=<secret>
+
+SENTRY_LINK=<secret>
