@@ -1,5 +1,7 @@
+import dataclasses
 import json
 import uuid
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional, Union
 from uuid import uuid4
@@ -11,6 +13,13 @@ class TaskStatus(Enum):
     received = auto()
     processing = auto()
     finished = auto()
+    failed = auto()
+
+
+@dataclass
+class Result:
+    captcha_text: str = ""
+    confidence: float = 0.0
 
 
 class Task:
@@ -18,19 +27,20 @@ class Task:
         self,
         id: Optional[Union[uuid.UUID, str]] = None,
         status: TaskStatus = TaskStatus.received,
-        result: str = "",
+        result: Result = Result(),
     ):
         self.id = str(uuid4()) if id is None else str(id)
         self.status = status
         self.result = result
 
     def to_json(self) -> str:
-        return json.dumps({"id": self.id, "status": self.status.value, "result": self.result})
+        return json.dumps({"id": self.id, "status": self.status.value, "result": dataclasses.asdict(self.result)})
 
     @classmethod
     def from_json(cls, json_string: str):
         data = json.loads(json_string)
         data["status"] = TaskStatus(data["status"])
+        data["result"] = Result(**data["result"])
         return cls(**data)
 
 
@@ -60,6 +70,11 @@ class TaskTracker:
     def update_status(self, id_: str, status: TaskStatus):
         task = self.get_task(id_)
         task.status = status
+        self._push_task(task)
+
+    def publish_result(self, id_: str, result: Result):
+        task = self.get_task(id_)
+        task.result = result
         self._push_task(task)
 
     def get_status(self, id_: str) -> TaskStatus:

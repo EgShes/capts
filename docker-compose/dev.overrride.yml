@@ -1,0 +1,12 @@
+version: "2.4"
+
+services:
+  redis:
+    ports:
+      - 9999:6379
+
+  queue:
+    ports:
+      - 5672:5672
+      - 15672:15672
+

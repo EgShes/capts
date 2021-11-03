@@ -30,7 +30,7 @@ async def process_image(captcha_type: CaptchaType, captcha: UploadFile = File(..
     task_tracker.register_task(task)
     redis_storage.set_namespace(captcha_type.name)
     redis_storage[task.id] = captcha
-    captcha2publisher[captcha_type].publish_message(Message(id=task.id, storage_namespace=captcha_type.name))
+    captcha2publisher[captcha_type].publish_message(Message(task_id=task.id, storage_namespace=captcha_type.name))
     return {"id": task.id}
 
 

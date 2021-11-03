@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class Message(BaseModel):
-    id: str
+    task_id: str
     storage_namespace: str

@@ -1,4 +1,3 @@
-COMPOSE_FILE=prod.yml
 COMPOSE_PROJECT_NAME=captcha
 
 REDIS_URL=redis://redis:6379
