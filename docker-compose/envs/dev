@@ -10,3 +10,5 @@ EXCHANGE=exchange
 EXCHANGE_DEAD_LETTER=exchange-dead-letter
 FNS_QUEUE=fns-queue
 ALCO_QUEUE=alco-queue
+
+SENTRY_LINK=

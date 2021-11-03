@@ -6,13 +6,16 @@ from PIL import Image
 
 from capts.app.models import Message
 from capts.app.utils import status2message
-from capts.businesslogic.queue import alco_message_publisher, fns_message_publisher
+from capts.businesslogic.queue import Config, MessagePublisher, get_publisher_channel
 from capts.businesslogic.task import Task, TaskNotRegisteredError
-from capts.config import CaptchaType, redis_storage, task_tracker
+from capts.config import CaptchaType, api_logger, redis_storage, task_tracker
+
+publisher_channel = get_publisher_channel()
+api_logger.info(f"Connected to channel {publisher_channel}")
 
 captcha2publisher = {
-    CaptchaType.fns: fns_message_publisher,
-    CaptchaType.alcolicenziat: alco_message_publisher,
+    CaptchaType.fns: MessagePublisher(publisher_channel, Config.EXCHANGE, Config.FNS_QUEUE_ROUTING_KEY),
+    CaptchaType.alcolicenziat: MessagePublisher(publisher_channel, Config.EXCHANGE, Config.ALCO_QUEUE_ROUTING_KEY),
 }
 
 

@@ -11,7 +11,7 @@ from torch.nn import Module
 from capts.app.models import Message
 from capts.businesslogic.task import Result, TaskStatus
 from capts.businesslogic.utils import norm_image
-from capts.config import redis_storage, task_tracker
+from capts.config import nn_logger, redis_storage, task_tracker
 
 
 class ExpectedException(Exception):
@@ -22,8 +22,10 @@ def handle_unhandled_exceptions(func):
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
-        except Exception:
+        except Exception as e:
             _, channel, method, _, body = args
+            if not isinstance(e, ExpectedException):
+                nn_logger.critical("Unhandled exception occurred")
             channel.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
             message = Message.parse_raw(body)
             task_tracker.update_status(message.task_id, status=TaskStatus.failed)
@@ -61,12 +63,14 @@ class Processor(abc.ABC):
     @handle_unhandled_exceptions
     def _handle_request(self, channel: BlockingChannel, method: Method, properties: BasicProperties, body: bytes):
         message = Message.parse_raw(body)
+        nn_logger.info(f"Received {message}")
         task_tracker.update_status(message.task_id, status=TaskStatus.processing)
 
         redis_storage.set_namespace(message.storage_namespace)
         try:
             image = redis_storage.pop(message.task_id)
         except KeyError as e:
+            nn_logger.exception(f"Task id {message.task_id} not found in redis storage")
             raise ExpectedException(f"Image with key {message.task_id} not found") from e
 
         result = self.process(image)
@@ -74,6 +78,7 @@ class Processor(abc.ABC):
         task_tracker.update_status(message.task_id, status=TaskStatus.finished)
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
+        nn_logger.info(f"Finished processing with a result: {result}")
 
     def start_consuming(self):
         self.channel.start_consuming()

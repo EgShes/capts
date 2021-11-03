@@ -1,5 +1,22 @@
+import logging.config
+from pathlib import Path
+from typing import Union
+
 import numpy as np
 import torch
+import yaml
+
+
+class Logger:
+    @classmethod
+    def from_config(cls, logger_name: str, config_path: Union[str, Path]) -> logging.Logger:
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f.read())
+        assert (
+            logger_name in config["loggers"]
+        ), f"No config found for the {logger_name} logger. Expected names {config['loggers']}"
+        logging.config.dictConfig(config)
+        return logging.getLogger(logger_name)
 
 
 def norm_image(im, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):

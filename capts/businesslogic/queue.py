@@ -142,7 +142,3 @@ def get_publisher_channel():
 
 def get_consumer_channel():
     return get_channel(RABBIT_URL, RABBIT_PORT, RABBIT_LOGIN, RABBIT_PASSWORD, 60)
-
-
-fns_message_publisher = MessagePublisher(get_publisher_channel(), Config.EXCHANGE, Config.FNS_QUEUE_ROUTING_KEY)
-alco_message_publisher = MessagePublisher(get_publisher_channel(), Config.EXCHANGE, Config.ALCO_QUEUE_ROUTING_KEY)
