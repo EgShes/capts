@@ -1,4 +1,5 @@
 COMPOSE_FILE=dev.yml
+COMPOSE_PROJECT_NAME=captcha
 
 REDIS_URL=redis://redis:6379
 RABBIT_URL=amqp://guest:guest@queue:5672
