@@ -18,7 +18,7 @@ class TaskStatus(Enum):
 
 @dataclass
 class Result:
-    captcha_text: str = ""
+    text: str = ""
     confidence: float = 0.0
 
 

@@ -15,6 +15,7 @@ class Logger:
         assert (
             logger_name in config["loggers"]
         ), f"No config found for the {logger_name} logger. Expected names {config['loggers']}"
+        config["disable_existing_loggers"] = False
         logging.config.dictConfig(config)
         return logging.getLogger(logger_name)
 

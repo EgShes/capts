@@ -103,7 +103,7 @@ class FnsCaptchaProcessor(Processor):
         )
 
         indxs = np.argsort([i[0][0] for i in pred_boxes])
-        result = Result(captcha_text="".join(np.array(pred_class)[indxs]), confidence=float(np.prod(pred_score)))
+        result = Result(text="".join(np.array(pred_class)[indxs]), confidence=float(np.prod(pred_score)))
         return result
 
 
@@ -126,5 +126,5 @@ class AlcoCaptchaProcessor(Processor):
         )
 
         indxs = np.argsort([i[0][0] for i in pred_boxes])
-        result = Result(captcha_text="".join(np.array(pred_class)[indxs]), confidence=float(np.prod(pred_score)))
+        result = Result(text="".join(np.array(pred_class)[indxs]), confidence=float(np.prod(pred_score)))
         return result
