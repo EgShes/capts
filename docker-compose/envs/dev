@@ -1,7 +1,10 @@
 COMPOSE_PROJECT_NAME=captcha
 
 REDIS_URL=redis://redis:6379
-RABBIT_URL=amqp://guest:guest@queue:5672
+RABBIT_URL=queue
+RABBIT_PORT=5672
+RABBIT_LOGIN=guest
+RABBIT_PASSWORD=guest
 
 EXCHANGE=exchange
 EXCHANGE_DEAD_LETTER=exchange-dead-letter

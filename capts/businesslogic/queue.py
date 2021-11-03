@@ -3,12 +3,12 @@ from itertools import count
 from time import sleep
 
 import pika
-from pika import URLParameters
+from pika import ConnectionParameters, PlainCredentials
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.exceptions import AMQPConnectionError
 from pydantic import BaseModel
 
-from capts.config import RABBIT_URL
+from capts.config import RABBIT_LOGIN, RABBIT_PASSWORD, RABBIT_PORT, RABBIT_URL
 
 
 class Config:
@@ -106,24 +106,43 @@ def init_channel(
     return channel
 
 
-MAX_ATTEMPTS = 10
-for attempt in count():
-    try:
-        connection = BlockingConnection(URLParameters(RABBIT_URL))
-        break
-    except AMQPConnectionError:
-        sleep(1)
-    if attempt == MAX_ATTEMPTS:
-        raise AMQPConnectionError(f"Could not connect to {RABBIT_URL}")
+def connect(url: str, port: int, login: str, password: str, heartbeat: int = 60) -> BlockingConnection:
+    MAX_ATTEMPTS = 10
+    for attempt in count():
+        try:
+            parameters = ConnectionParameters(
+                host=url, port=port, credentials=PlainCredentials(login, password), heartbeat=heartbeat
+            )
+            connection = BlockingConnection(parameters)
+            break
+        except AMQPConnectionError:
+            sleep(1)
+        if attempt == MAX_ATTEMPTS:
+            raise AMQPConnectionError(f"Could not connect to {RABBIT_URL}")
+    return connection
 
-channel = init_channel(
-    connection=connection,
-    exchange=Config.EXCHANGE,
-    exchange_dead_letter=Config.EXCHANGE_DEAD_LETTER,
-    fns_queue=Config.FNS_QUEUE,
-    fns_routing_key=Config.FNS_QUEUE_ROUTING_KEY,
-    alco_queue=Config.ALCO_QUEUE,
-    alco_routing_key=Config.ALCO_QUEUE_ROUTING_KEY,
-)
-fns_message_publisher = MessagePublisher(channel, Config.EXCHANGE, Config.FNS_QUEUE_ROUTING_KEY)
-alco_message_publisher = MessagePublisher(channel, Config.EXCHANGE, Config.ALCO_QUEUE_ROUTING_KEY)
+
+def get_channel(url: str, port: int, login: str, password: str, heartbeat: int):
+    connection = connect(url, port, login, password, heartbeat)
+    channel = init_channel(
+        connection=connection,
+        exchange=Config.EXCHANGE,
+        exchange_dead_letter=Config.EXCHANGE_DEAD_LETTER,
+        fns_queue=Config.FNS_QUEUE,
+        fns_routing_key=Config.FNS_QUEUE_ROUTING_KEY,
+        alco_queue=Config.ALCO_QUEUE,
+        alco_routing_key=Config.ALCO_QUEUE_ROUTING_KEY,
+    )
+    return channel
+
+
+def get_publisher_channel():
+    return get_channel(RABBIT_URL, RABBIT_PORT, RABBIT_LOGIN, RABBIT_PASSWORD, 0)
+
+
+def get_consumer_channel():
+    return get_channel(RABBIT_URL, RABBIT_PORT, RABBIT_LOGIN, RABBIT_PASSWORD, 60)
+
+
+fns_message_publisher = MessagePublisher(get_publisher_channel(), Config.EXCHANGE, Config.FNS_QUEUE_ROUTING_KEY)
+alco_message_publisher = MessagePublisher(get_publisher_channel(), Config.EXCHANGE, Config.ALCO_QUEUE_ROUTING_KEY)

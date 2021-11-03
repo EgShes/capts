@@ -3,6 +3,7 @@ version: "2.4"
 services:
   redis:
     image: redis:alpine
+    restart: on-failure
 
   queue:
     image: rabbitmq:3-management-alpine
@@ -10,34 +11,34 @@ services:
 
   api:
     build: ..
+    env_file:
+      - .env
     ports:
       - 8080:8080
-    environment:
-      - REDIS_URL
-      - RABBIT_URL
     depends_on:
       - redis
       - queue
     command: ["uvicorn", "capts.app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    restart: on-failure
 
   fns_nn:
     build: ..
-    environment:
-      - REDIS_URL
-      - RABBIT_URL
+    env_file:
+      - .env
     depends_on:
       - redis
       - queue
       - api
     command: ["python", "-m", "capts.businesslogic.start_nn", "fns"]
+    restart: on-failure
 
   alco_nn:
     build: ..
-    environment:
-      - REDIS_URL
-      - RABBIT_URL
+    env_file:
+      - .env
     depends_on:
       - redis
       - queue
       - api
-    command: [ "python", "-m", "capts.businesslogic.start_nn", "alcolicenziat" ]
+    command: ["python", "-m", "capts.businesslogic.start_nn", "alcolicenziat"]
+    restart: on-failure
