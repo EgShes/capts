@@ -14,6 +14,25 @@ from capts.businesslogic.utils import norm_image
 from capts.config import redis_storage, task_tracker
 
 
+class ExpectedException(Exception):
+    pass
+
+
+def handle_unhandled_exceptions(func):
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except Exception:
+            _, channel, method, _, body = args
+            channel.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+            message = Message.parse_raw(body)
+            task_tracker.update_status(message.task_id, status=TaskStatus.failed)
+            return
+        return result
+
+    return wrapper
+
+
 class Processor(abc.ABC):
     def __init__(self, model: Module, channel: BlockingChannel, in_queue: str):
         self.model = model
@@ -39,25 +58,22 @@ class Processor(abc.ABC):
     def postprocess(self, prediction) -> Result:
         """Postprocess net output"""
 
-    def _handle_request(self, ch: BlockingChannel, method: Method, properties: BasicProperties, body: bytes):
+    @handle_unhandled_exceptions
+    def _handle_request(self, channel: BlockingChannel, method: Method, properties: BasicProperties, body: bytes):
         message = Message.parse_raw(body)
         task_tracker.update_status(message.task_id, status=TaskStatus.processing)
 
         redis_storage.set_namespace(message.storage_namespace)
         try:
-            image = redis_storage[message.task_id]
-        except KeyError:
-            task_tracker.update_status(message.task_id, TaskStatus.failed)
-            ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-            task_tracker.update_status(message.task_id, status=TaskStatus.failed)
-            return
+            image = redis_storage.pop(message.task_id)
+        except KeyError as e:
+            raise ExpectedException(f"Image with key {message.task_id} not found") from e
 
         result = self.process(image)
-
         task_tracker.publish_result(message.task_id, result)
         task_tracker.update_status(message.task_id, status=TaskStatus.finished)
 
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def start_consuming(self):
         self.channel.start_consuming()
