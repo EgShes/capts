@@ -69,3 +69,11 @@ async def result(captcha_id: str):
         status=status2message[task.status],
         result=NeuralNetResult(text=task.result.text, confidence=task.result.confidence),
     )
+
+
+@app.get("/hc/")
+def health_check():
+    """
+    Health check. Always returns "ok" with code 200
+    """
+    return "ok"
