@@ -53,16 +53,17 @@ class RedisNotInitializedError(Exception):
 
 
 class TaskTracker:
-    def __init__(self, redis: Redis):
+    def __init__(self, redis: Redis, ttl: int = 0):
         self._redis = redis
+        self._ttl = ttl
 
     @classmethod
-    def from_url(cls, url: str):
+    def from_url(cls, url: str, ttl: int = 0):
         try:
             redis = Redis.from_url(url)
         except ValueError as e:
             raise RedisNotInitializedError(f"Could not initialize redis from url: {url}") from e
-        return cls(redis)
+        return cls(redis, ttl)
 
     def register_task(self, task: Task):
         self._push_task(task)
@@ -88,3 +89,5 @@ class TaskTracker:
 
     def _push_task(self, task: Task):
         self._redis.set(task.id, task.to_json())
+        if self._ttl > 0:
+            self._redis.expire(task.id, self._ttl)

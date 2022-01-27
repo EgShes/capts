@@ -1,16 +1,18 @@
 COMPOSE_PROJECT_NAME=captcha
 
-REDIS_URL=<secret>
-RABBIT_URL=<secret>
-RABBIT_PORT=<secret>
-RABBIT_LOGIN=<secret>
-RABBIT_PASSWORD=<secret>
+REDIS_URL=redis://redis:6379
+# 86400 seconds = 24 hours
+REDIS_TTL=86400
+RABBIT_URL=queue
+RABBIT_PORT=5672
+RABBIT_LOGIN=guest
+RABBIT_PASSWORD=guest
 
-EXCHANGE=<secret>
-EXCHANGE_DEAD_LETTER=<secret>
-FNS_QUEUE=<secret>
-ALCO_QUEUE=<secret>
+EXCHANGE=exchange
+EXCHANGE_DEAD_LETTER=exchange-dead-letter
+FNS_QUEUE=fns-queue
+ALCO_QUEUE=alco-queue
 
-SENTRY_LINK=<secret>
+SENTRY_LINK=
 
 WEIGHTS_GOOGLE_TOKEN=<secret>

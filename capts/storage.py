@@ -117,7 +117,7 @@ class Storage(MutableMapping, ABC):
 
 
 class RedisStorage(Storage):
-    def __init__(self, dsn: Optional[str] = None, namespace: str = "namespace", chunksize: int = 2 ** 28, **kwargs):
+    def __init__(self, dsn: Optional[str] = None, namespace: str = "namespace", chunksize: int = 2 ** 28, ttl: int = 0, **kwargs):
         params = {"health_check_interval": 30, "socket_keepalive": True}
         kwargs.update(params)
 
@@ -129,6 +129,7 @@ class RedisStorage(Storage):
         self.chunksize = chunksize
         self.registry_name = "RedisStorageRegistry"
         self.chunks_suffix = "chunks"
+        self.ttl = ttl
         super().__init__(namespace)
 
     def set_namespace(self, namespace: str):
@@ -144,12 +145,13 @@ class RedisStorage(Storage):
         chunks_tuple = chunk_bytes(obj, self.chunksize)
         registry = self._get_registry_name()
         name = self._get_chunksname(key)
-
         with self.redis.pipeline() as pipe:
             pipe.delete(name)
             for chunk in chunks_tuple:
                 pipe.rpush(name, chunk)
             pipe.hset(registry, key, 1)  # dummy value 1. Only for key existing
+            if self.ttl > 0:
+                pipe.expire(key, self.ttl)
             pipe.execute()
 
     def _read_by_chunks(self, key: str):
