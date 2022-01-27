@@ -12,3 +12,5 @@ FNS_QUEUE=fns-queue
 ALCO_QUEUE=alco-queue
 
 SENTRY_LINK=
+
+WEIGHTS_GOOGLE_TOKEN=<secret>

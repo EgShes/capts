@@ -1,10 +1,16 @@
-# capts
+# Recognition of captchas
+
+Supported captcha types:
+
+- [fns](https://disk.yandex.ru/i/fefdsNdRlD9jWQ)
+
+- [alcolicenziat](https://disk.yandex.ru/i/NjHmMHWj2Au85A)
 
 ## Deployment
 
 ### Weights
 
-Download weights from [here](https://disk.yandex.ru/d/t0s_zakP8RX6yg) and put it in the project root in `weights` folder
+Ask for `WEIGHTS_GOOGLE_TOKEN` and define it in .env
 
 ### Prod
 
@@ -21,3 +27,7 @@ cd docker-compose
 cp envs/dev .env
 DOCKER_BUILDKIT=1 docker-compose -f prod.yml -f dev.overrride.yml up
 ```
+
+### Documentation
+
+Interactive API documentation is available at `/docs` endpoint

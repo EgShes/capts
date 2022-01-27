@@ -6,11 +6,14 @@ services:
     restart: on-failure
 
   queue:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-alpine
     restart: on-failure
 
   api:
-    build: ..
+    build:
+      context: ..
+      args:
+        - WEIGHTS_GOOGLE_TOKEN
     env_file:
       - .env
     ports:
@@ -22,7 +25,10 @@ services:
     restart: on-failure
 
   fns_nn:
-    build: ..
+    build:
+      context: ..
+      args:
+        - WEIGHTS_GOOGLE_TOKEN
     env_file:
       - .env
     depends_on:
@@ -33,7 +39,10 @@ services:
     restart: on-failure
 
   alco_nn:
-    build: ..
+    build:
+      context: ..
+      args:
+        - WEIGHTS_GOOGLE_TOKEN
     env_file:
       - .env
     depends_on:
