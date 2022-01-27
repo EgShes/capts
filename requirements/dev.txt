@@ -1,1 +1,2 @@
+pre-commit==2.17.0
 pydevd-pycharm~=213.6461.77

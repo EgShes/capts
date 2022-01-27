@@ -117,7 +117,9 @@ class Storage(MutableMapping, ABC):
 
 
 class RedisStorage(Storage):
-    def __init__(self, dsn: Optional[str] = None, namespace: str = "namespace", chunksize: int = 2 ** 28, ttl: int = 0, **kwargs):
+    def __init__(
+        self, dsn: Optional[str] = None, namespace: str = "namespace", chunksize: int = 2 ** 28, ttl: int = 0, **kwargs
+    ):
         params = {"health_check_interval": 30, "socket_keepalive": True}
         kwargs.update(params)
 

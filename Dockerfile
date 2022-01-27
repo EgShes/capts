@@ -24,5 +24,3 @@ RUN --mount=type=cache,target=/root/.cache \
     pip install -r /requirements/requirements.txt
 
 COPY capts /capts
-
-#https://github.com/CrackerCat/dockerfile-1#build-mounts-run---mount
